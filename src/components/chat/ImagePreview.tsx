@@ -7,7 +7,7 @@ export default function ImagePreview() {
 
   return (
     <Dialog>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 overflow-x-auto">
         {previewImages.map((image) => (
           <div key={image.id}>
             <DialogTrigger className="relative h-16 w-16">
@@ -15,7 +15,7 @@ export default function ImagePreview() {
                 <img
                   src={image.url}
                   alt="Pasted"
-                  className="absolute inset-0 rounded-md border border-primary-foreground object-cover"
+                  className="h-full w-full rounded-md border border-primary-foreground object-cover"
                 />
                 <div
                   onClick={(e) => {

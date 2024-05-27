@@ -1,7 +1,6 @@
 import { useInput, type PreviewImage } from "@/states/chat-input-state"
 import { MicIcon, Paperclip, SendIcon } from "lucide-react"
 import React, { useRef } from "react"
-// Max height in pixels
 import type { ClipboardEvent } from "react"
 
 import { Button } from "../ui/button"
@@ -10,7 +9,7 @@ import { Label } from "../ui/label"
 import { Textarea } from "../ui/textarea"
 import ImagePreview from "./ImagePreview"
 
-const MAX_HEIGHT = 184
+const MAX_HEIGHT = 100
 
 const TextAreaResizeExample = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -18,7 +17,7 @@ const TextAreaResizeExample = () => {
   const { previewImages, setPreviewImages, setPrompt } = useInput()
 
   return (
-    <div className="group relative  h-auto  rounded-md">
+    <div className="group relative h-auto rounded-md">
       <InputPrimitive
         onChange={handleFileInputChange}
         type="file"
@@ -27,15 +26,19 @@ const TextAreaResizeExample = () => {
         className="hidden"
         ref={fileInputRef}
       />
-
       {previewImages.length > 0 && <ImagePreview></ImagePreview>}
+      <div className="flex items-center justify-center gap-2 overflow-clip">
+        <Label
+          className="grid aspect-square h-9 place-items-center rounded-full p-0 hover:bg-accent"
+          htmlFor="file-input">
+          <Paperclip height={20} width={20} />
+        </Label>
 
-      <div className="flex items-center justify-center gap-2">
         <Textarea
           ref={textareaRef}
           autoFocus
           rows={1}
-          className=""
+          className="w-full min-h-9 flex-1 resize-none text-black"
           placeholder="What's next ?"
           onChange={(e) => setPrompt(e.target.value)}
           onInput={handleInput}
@@ -49,8 +52,11 @@ const TextAreaResizeExample = () => {
           <span className="sr-only">Record audio</span>
         </Button>
 
-        <Button className="w-6 h-6" size="icon" type="submit">
-          <SendIcon className="h-4 w-4" />
+        <Button
+          className="text-white hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+          size="icon"
+          type="submit">
+          <SendIcon className="h-5 w-5" />
           <span className="sr-only">Send</span>
         </Button>
       </div>
