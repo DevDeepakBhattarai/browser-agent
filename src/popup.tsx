@@ -1,10 +1,20 @@
 import { CountButton } from "@/features/count-button"
 
-import "~style.css"
+import "@/style.css"
+
+import { useEffect } from "react"
 
 function IndexPopup() {
   return (
-    <div className="plasmo-flex plasmo-items-center plasmo-justify-center plasmo-h-16 plasmo-w-40">
+    <div
+      onClick={async () => {
+        const [tab] = await chrome.tabs.query({
+          active: true,
+          lastFocusedWindow: true
+        })
+        await chrome.sidePanel.open({ tabId: tab.id })
+      }}
+      className="flex items-center justify-center h-16 w-40">
       <CountButton />
     </div>
   )
