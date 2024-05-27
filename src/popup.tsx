@@ -2,8 +2,6 @@ import { CountButton } from "@/features/count-button"
 
 import "@/style.css"
 
-import { useEffect } from "react"
-
 function IndexPopup() {
   return (
     <div

@@ -27,7 +27,7 @@ const TextAreaResizeExample = () => {
         ref={fileInputRef}
       />
       {previewImages.length > 0 && <ImagePreview></ImagePreview>}
-      <div className="flex items-center justify-center gap-2 overflow-clip">
+      <div className="flex items-center  min-h-9 h-auto justify-center gap-2 overflow-clip">
         <Label
           className="grid aspect-square h-9 place-items-center rounded-full p-0 hover:bg-accent"
           htmlFor="file-input">
@@ -38,7 +38,7 @@ const TextAreaResizeExample = () => {
           ref={textareaRef}
           autoFocus
           rows={1}
-          className="w-full min-h-9 flex-1 resize-none text-black"
+          className="w-full min-h-10 flex-1 resize-none text-black"
           placeholder="What's next ?"
           onChange={(e) => setPrompt(e.target.value)}
           onInput={handleInput}

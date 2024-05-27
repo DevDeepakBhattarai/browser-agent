@@ -5,16 +5,21 @@ import {
 } from "@/components/ui/hover-card"
 import { useModal } from "@/states/model-state"
 import { motion } from "framer-motion"
-import React from "react"
+import React, { useState } from "react"
 
 export default function ChatTrigger() {
   const { setIsModelOpen } = useModal()
+  const [isBeingDragged, setIsBeingDragged] = useState(false)
   return (
     <HoverCard>
       <HoverCardTrigger asChild>
         <motion.div
-          onClick={() => setIsModelOpen((prev) => !prev)}
+          onClick={() =>
+            !isBeingDragged ? setIsModelOpen((prev) => !prev) : null
+          }
           drag="y"
+          onDragStart={() => setIsBeingDragged(true)}
+          onDragEnd={() => setIsBeingDragged(false)}
           dragConstraints={{ top: -window.screen.availHeight, bottom: 128 }}
           dragMomentum={false}
           className="">
