@@ -2,12 +2,12 @@ import { CountButton } from "@/features/count-button"
 import cssText from "data-text:@/style.css"
 import type { PlasmoCSConfig } from "plasmo"
 
-import ChatTrigger from "./components/chat/ChatTrigger"
-import ChatWindow from "./components/chat/ChatWindow"
-import { useModal } from "./states/model-state"
+import ChatTrigger from "../components/chat/ChatTrigger"
+import ChatWindow from "../components/chat/ChatWindow"
+import { useModal } from "../states/model-state"
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://www.google.com/*"]
+  matches: ["https://www.google.com/*", "http://localhost:3000/*"]
 }
 
 export const getStyle = () => {

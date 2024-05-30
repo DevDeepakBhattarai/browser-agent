@@ -10,6 +10,7 @@
     "package": "plasmo package"
   },
   "dependencies": {
+    "@plasmohq/messaging": "^0.6.2",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-hover-card": "^1.0.7",
@@ -52,7 +53,8 @@
     ],
     "externally_connectable": {
       "matches": [
-        "http://localhost:3000/*"
+        "http://localhost:3000/*",
+        "https://allweone.vercel.app/*"
       ]
     }
   }
