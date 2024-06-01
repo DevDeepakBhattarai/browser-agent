@@ -1,8 +1,15 @@
 import { sendMessageToContentScript } from "@/lib/sendMessageToContentScript"
+import type { TypeTextOptions } from "@/lib/type"
 
 import type { PlasmoMessaging } from "@plasmohq/messaging"
 
+type WebsiteMessageData = {
+  prompt: string
+  type: "write" | "paste"
+}
+
 const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
+  const reqBody = req.body as WebsiteMessageData
   try {
     const window = await chrome.windows.create({
       url: "https://google.com",
@@ -15,8 +22,12 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
     console.log("Sending message to content script...")
     const response = await sendMessageToContentScript({
       tabId: tabId,
-      body: { type: "TASK", message: "This is the actual message for you" },
-      name: "index"
+      body: {
+        selector: "#APjFqb",
+        text: reqBody.prompt,
+        type: reqBody.type
+      } as TypeTextOptions,
+      name: "type"
     })
 
     // Log the response to see if it's received correctly
