@@ -1,7 +1,8 @@
-import { sendMessageToContentScript } from "@/lib/sendMessageToContentScript"
-import type { TypeTextOptions } from "@/lib/type"
+import type { TypeTextOptions } from "@/contents/type"
+import { ping } from "@/lib/ping"
+import { takeScreenshot } from "@/lib/screenshot"
 
-import type { PlasmoMessaging } from "@plasmohq/messaging"
+import { sendToContentScript, type PlasmoMessaging } from "@plasmohq/messaging"
 
 type WebsiteMessageData = {
   prompt: string
@@ -16,24 +17,46 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
       type: "popup"
     })
     const tabId = window.tabs[0].id
-    console.log(`Tab ID: ${tabId}`)
 
-    // Adding detailed logging before and after the message sending
-    console.log("Sending message to content script...")
-    const response = await sendMessageToContentScript({
-      tabId: tabId,
+    try {
+      await ping(tabId)
+      console.log("Initial Response Done !")
+    } catch (e) {
+      console.log(e)
+      res.send({
+        success: false,
+        message: "Script could not be loaded in the browser"
+      })
+      return
+    }
+
+    const response = await sendToContentScript({
+      name: "type",
+      tabId,
       body: {
         selector: "#APjFqb",
         text: reqBody.prompt,
-        type: reqBody.type
-      } as TypeTextOptions,
-      name: "type"
+        type: reqBody.type,
+        name: "type"
+      } as TypeTextOptions
     })
+    console.log(response)
 
-    // Log the response to see if it's received correctly
-    console.log("Response from content script:", response)
+    const screenshot = await takeScreenshot({
+      type: "fullpage",
+      windowId: window.id
+    })
+    console.log(screenshot)
 
-    // Send the response back
+    const html = await sendToContentScript({
+      tabId,
+      body: {
+        name: "getHTML"
+      },
+      name: "getHTML"
+    })
+    console.log(html)
+
     res.send({ success: true, data: response })
   } catch (error) {
     // Log the error and send a failure response

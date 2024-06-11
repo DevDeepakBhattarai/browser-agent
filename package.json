@@ -21,7 +21,7 @@
     "clsx": "^2.1.1",
     "framer-motion": "^11.2.6",
     "lucide-react": "^0.379.0",
-    "plasmo": "0.86.3",
+    "plasmo": "0.87.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "tailwind-merge": "^2.3.0",
@@ -42,14 +42,15 @@
   },
   "manifest": {
     "host_permissions": [
-      "https://*/*"
+      "<all_urls>"
     ],
     "permissions": [
       "cookies",
       "scripting",
       "storage",
       "tabs",
-      "activeTab"
+      "activeTab",
+      "<all_urls>"
     ],
     "externally_connectable": {
       "matches": [
