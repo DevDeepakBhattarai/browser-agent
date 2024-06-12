@@ -33,7 +33,7 @@ async function typeText({
     return false
   }
 
-  // Convert textObject to a string
+  inputField.focus()
 
   if (type === "write") {
     // Function to type each character with a delay

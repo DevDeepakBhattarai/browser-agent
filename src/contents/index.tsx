@@ -1,6 +1,7 @@
 import { CountButton } from "@/features/count-button"
 import cssText from "data-text:@/style.css"
 import type { PlasmoCSConfig } from "plasmo"
+import { useEffect } from "react"
 
 import { useMessage } from "@plasmohq/messaging/hook"
 
@@ -30,6 +31,18 @@ const PlasmoOverlay = () => {
   })
 
   const { isModalOpen } = useModal()
+
+  useEffect(() => {
+    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+      if (message.action === "sendRequest" && message.from === "content") {
+        fetch(message.url)
+          .then((response) => response.text())
+          .then((result) => sendResponse({ result }))
+          .catch((error) => sendResponse({ error: error.message }))
+        return true // Will respond asynchronously.
+      }
+    })
+  }, [])
   return (
     <div className="z-50 flex fixed bottom-32 right-0">
       <ChatTrigger></ChatTrigger>

@@ -1,5 +1,6 @@
 import React from "react"
 
+import { Button } from "../ui/button"
 import { Separator } from "../ui/separator"
 import ChatInput from "./ChatInput"
 import ChatList from "./ChatList"

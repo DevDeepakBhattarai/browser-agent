@@ -1,4 +1,5 @@
 import type { TypeTextOptions } from "@/contents/type"
+import { Authenticate } from "@/lib/authenticate"
 import { ping } from "@/lib/ping"
 import { takeScreenshot } from "@/lib/screenshot"
 
@@ -11,6 +12,27 @@ type WebsiteMessageData = {
 
 const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
   const reqBody = req.body as WebsiteMessageData
+
+  try {
+    const response = await Authenticate()
+    console.log(response)
+  } catch (e) {
+    console.log(e)
+    res.send({ message: "You are not authorized", success: false })
+  }
+
+  try {
+    const data = await fetch("http://localhost:3000/api/agent/test", {
+      method: "POST",
+      body: JSON.stringify({
+        email: "test@email.com",
+        password: "abcdefghijklmnopqrstuvwxyz"
+      })
+    }).then((res) => res.json())
+    console.log(data)
+  } catch (e) {
+    console.log(e)
+  }
   try {
     const window = await chrome.windows.create({
       url: "https://google.com",
