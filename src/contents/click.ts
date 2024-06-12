@@ -7,6 +7,8 @@ export type ClickOptions = {
 
 listen(async (req, res) => {
   const reqData = req.body as ClickOptions
+  if (reqData.name !== "click") return
+
   const element = document.querySelector(reqData.selector)
 
   if (!element)

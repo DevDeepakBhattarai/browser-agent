@@ -17,8 +17,9 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
     const response = await Authenticate()
     console.log(response)
   } catch (e) {
-    console.log(e)
+    console.error(e)
     res.send({ message: "You are not authorized", success: false })
+    return
   }
 
   try {
