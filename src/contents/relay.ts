@@ -7,5 +7,5 @@ export const config: PlasmoCSConfig = {
 }
 
 relayMessage({
-  name: "hello"
+  name: "task"
 })
