@@ -1,8 +1,11 @@
 import type { TypeTextOptions } from "@/contents/type"
-import { click, getHTML, navigate, scroll, typeText } from "@/lib/actionHelper"
+import { click, getHTML, scroll, typeText, wait } from "@/lib/actionHelper"
+import { agentAPI } from "@/lib/agent"
 import { Authenticate } from "@/lib/authenticate"
+import { navigate } from "@/lib/navigate"
 import { ping } from "@/lib/ping"
 import { takeScreenshot } from "@/lib/screenshot"
+import { search } from "@/lib/search"
 import { sleep } from "@/lib/utils"
 
 // import {z} from "zod"
@@ -26,38 +29,86 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
   }
 
   try {
-    const window = await chrome.windows.create({
-      url: "https://google.com",
-      type: "popup"
-    })
-    let tabId = window.tabs[0].id
-    await ping(tabId)
-    const response = await typeText(tabId, "#APjFqb", reqBody.prompt, "write")
-    console.log(response)
+    let window: chrome.windows.Window
+    let tabId: number
+    let completedSteps = []
+    const { plan, action } = await agentAPI.plan(reqBody.prompt, "gpt")
 
-    const navigation = await navigate(tabId, "https://x.com")
-    console.log(navigation)
+    if (action && "goto" in action) {
+      window = await chrome.windows.create({
+        url: action.goto,
+        type: "popup"
+      })
+      tabId = window.tabs[0].id
+      await ping(tabId)
+      await wait(tabId)
+    }
 
-    await ping(tabId)
+    if (action && "search" in action) {
+      window = await search(action.search)
+      tabId = window.tabs[0].id
+      await ping(tabId)
+      await wait(tabId)
+    }
 
-    await sleep(2000)
-    const html = await getHTML(tabId)
+    const screenshot = await takeScreenshot(window.id)
+    const { html } = await getHTML(tabId)
 
-    console.log(html)
+    let index = 0
+    while (completedSteps.length !== plan.length) {
+      const nextAction = await agentAPI.action(
+        [screenshot],
+        html,
+        reqBody.prompt,
+        "gpt",
+        plan[index],
+        completedSteps
+      )
 
-    await sleep(1000)
-    const scroll_down = await scroll(tabId, "down")
-    console.log(scroll_down)
-    await sleep(1000)
+      if ("goto" in nextAction) {
+        await navigate(tabId, nextAction.goto)
+        await ping(tabId)
+        await wait(tabId)
+      }
 
-    // const selector =
-    //   "body > div.L3eUgb > div.o3j99.ikrT4e.om7nvf > form > div:nth-child(1) > div.A8SBwf.emcav > div.RNNXgb > div > div.dRYYxd > div.XDyW0e"
+      if ("type" in nextAction) {
+        await typeText(
+          tabId,
+          nextAction.type.selector,
+          nextAction.type.content,
+          "paste"
+        )
+      }
 
-    // const clickResponse = await click(tabId, selector)
+      if ("click" in nextAction) {
+        await click(tabId, nextAction.click)
+      }
 
-    // console.log(clickResponse)
+      if ("content_writing" in nextAction) {
+        const response = await agentAPI.content(
+          nextAction.content_writing.instruction,
+          "gpt"
+        )
+        await typeText(
+          tabId,
+          nextAction.content_writing.selector,
+          response.content,
+          "paste"
+        )
+      }
+      if ("scroll_up" in nextAction) {
+        await scroll(tabId, "up")
+      }
+      if ("scroll_down" in nextAction) {
+        await scroll(tabId, "down")
+      }
 
-    res.send({ success: true, data: response })
+      if ("completed" in nextAction) {
+        completedSteps.push(plan[index])
+        index++
+      }
+    }
+    res.send({ success: true })
   } catch (error) {
     // Log the error and send a failure response
     console.error("Error in message handler:", error)

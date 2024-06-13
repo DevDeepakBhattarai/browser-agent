@@ -6,8 +6,8 @@ listen(async (req, res) => {
   const reqData = req.body as TypeTextOptions & { name: string }
   if (reqData.name !== "type") return
   const hasTyped = await typeText(reqData)
-  if (hasTyped) res.send({ success: true })
-  else res.send({ success: false })
+  if (hasTyped) res.send({ success: true, type: true })
+  else res.send({ success: false, type: true })
 })
 export type TypeTextOptions = {
   selector: string

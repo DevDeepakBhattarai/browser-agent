@@ -23,6 +23,7 @@ listen(async (req, res) => {
   // Dispatch the event
   element.dispatchEvent(event)
   res.send({
-    success: true
+    success: true,
+    click: true
   })
 })
