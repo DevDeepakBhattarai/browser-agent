@@ -62,6 +62,9 @@ importers:
       tailwindcss-scrollbar:
         specifier: ^0.1.0
         version: 0.1.0(tailwindcss@3.4.1)
+      zod:
+        specifier: ^3.23.8
+        version: 3.23.8
       zustand:
         specifier: ^4.5.2
         version: 4.5.2(@types/react@18.2.48)(react@18.2.0)
@@ -3517,6 +3520,9 @@ packages:
     resolution: {integrity: sha512-B3VqDZ+JAg1nZpaEmWtTXUlBneoGx6CPM9b0TENK6aoSu5t73dItudwdgmi6tHlIZZId4dZ9skcAQ2UbcyAeVA==}
     engines: {node: '>= 14'}
     hasBin: true
+
+  zod@3.23.8:
+    resolution: {integrity: sha512-XBx9AXhXktjUqnepgTiE5flcKIYWi/rme0Eaj+5Y0lftuGBq+jyRu/md4WnuxqgP1ubdpNCsYEYPxrzVHD8d6g==}
 
   zustand@4.5.2:
     resolution: {integrity: sha512-2cN1tPkDVkwCy5ickKrI7vijSjPksFRfqS6237NzT0vqSsztTNnQdHw9mmN7uBdk3gceVXU0a+21jFzFzAc9+g==}
@@ -7327,6 +7333,8 @@ snapshots:
   yaml@1.10.2: {}
 
   yaml@2.4.2: {}
+
+  zod@3.23.8: {}
 
   zustand@4.5.2(@types/react@18.2.48)(react@18.2.0):
     dependencies:

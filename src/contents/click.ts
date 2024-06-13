@@ -23,7 +23,6 @@ listen(async (req, res) => {
   // Dispatch the event
   element.dispatchEvent(event)
   res.send({
-    success: true,
-    message: "Clicked on the element with selector " + reqData.selector
+    success: true
   })
 })

@@ -26,18 +26,6 @@ export default function Header() {
           variant="ghost">
           <X></X>
         </Button>
-        <Button
-          onClick={() => {
-            var event = new KeyboardEvent("keydown", {
-              key: "f",
-              shiftKey: false
-            })
-
-            // Dispatch the event to the document
-            document.dispatchEvent(event)
-          }}>
-          Hello
-        </Button>
       </div>
     </header>
   )

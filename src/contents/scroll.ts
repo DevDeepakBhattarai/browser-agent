@@ -25,8 +25,7 @@ listen(async (req, res) => {
     })
   } else {
     res.send({
-      success: false,
-      message: `Invalid scroll direction: ${reqData.direction}`
+      success: false
     })
   }
 })

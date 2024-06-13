@@ -63,7 +63,7 @@ listen((req, res) => {
     .filter((el) => el)
   // Join the array elements to form the final string
   const html = elementsArray.join("\n")
-  res.send({ html: html.toString() })
+  res.send({ html: html.toString(), success: true })
 })
 
 function isElementVisible(el) {

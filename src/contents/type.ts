@@ -44,12 +44,26 @@ async function typeText({
       // Set a timeout to type the next character
       await sleep(typingSpeed) // Adjust typing speed here
     }
-    // Start typing the text
+    const enterEvent = new KeyboardEvent("keydown", {
+      key: "Enter",
+      keyCode: 13,
+      bubbles: true,
+      cancelable: true
+    })
+    inputField.dispatchEvent(enterEvent)
     return true
   } else if (type === "paste") {
     // Directly set the value and dispatch a change event
     inputField.value = text
     inputField.dispatchEvent(new Event("input", { bubbles: true }))
+    const enterEvent = new KeyboardEvent("keydown", {
+      key: "Enter",
+      keyCode: 13,
+      bubbles: true,
+      cancelable: true
+    })
+
+    inputField.dispatchEvent(enterEvent)
     return true
   } else {
     console.error('Invalid type specified. Use "write" or "paste".')
