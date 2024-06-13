@@ -11,8 +11,24 @@ export async function Authenticate() {
   if (!authToken) {
     throw new Error("No auth token available")
   }
+
+  const createCookieHeader = (cookies: chrome.cookies.Cookie[]): string => {
+    return cookies
+      .map((cookie) => {
+        let cookieString = `${cookie.name}=${cookie.value}`
+        console.log(cookieString)
+        return cookieString
+      })
+      .join("; ")
+  }
+
+  // Example usage in a fetch request
+  const headers = new Headers()
+  headers.append("Cookie", createCookieHeader(cookies))
+  headers.append("Authorization", authToken)
+
   const response = await fetch(process.env.PLASMO_PUBLIC_LOGIN_URL, {
-    headers: { Authorization: authToken }
+    headers
   })
   const data = await response.json()
   return data
