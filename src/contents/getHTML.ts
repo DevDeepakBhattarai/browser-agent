@@ -10,22 +10,17 @@ listen((req, res) => {
   )
 
   // Counter for generating unique interactive IDs
-  let interactiveIdCounter = 0
+  let interactiveIdCounter = 1
 
   // Convert NodeList to array and process each element
   const elementsArray = Array.from(elements)
     .map((el) => {
       if (!isElementVisible(el)) return
       // Increment the counter to generate a new unique ID
-      interactiveIdCounter++
-      const interactiveId = `${interactiveIdCounter}`
       let extraAttribute = ""
 
-      // Add the interactive-id attribute
-      el.setAttribute("data-interactive-id", interactiveId)
-
       // Get the text content
-      const textContent = el.textContent || ""
+      const textContent = (el as HTMLElement).innerText
 
       if (
         el.tagName.toLowerCase() === "input" ||
@@ -35,7 +30,7 @@ listen((req, res) => {
         let placeholderValue = typeableElement.placeholder
         let value = typeableElement.value
         if (placeholderValue) {
-          extraAttribute += `placeholder="${placeholderValue}")`
+          extraAttribute += ` placeholder="${placeholderValue}")`
         }
         if (value) {
           extraAttribute += ` value="${value}"`
@@ -43,24 +38,38 @@ listen((req, res) => {
       }
 
       const ariaLabel = el.getAttribute("aria-label")
-      if (ariaLabel) {
+      if (ariaLabel && !textContent) {
         extraAttribute += ` aria-label="${ariaLabel}"`
       }
 
-      const title = el.getAttribute("title")
-      if (title) {
-        extraAttribute += ` title="${title}"`
+      if (
+        !ariaLabel &&
+        !textContent &&
+        (el.tagName.toLowerCase() === "a" ||
+          el.tagName.toLowerCase() === "button")
+      ) {
+        return
       }
 
       const role = el.getAttribute("role")
-      if (role) {
+      if (
+        role &&
+        el.tagName.toLowerCase() !== "button" &&
+        el.tagName.toLowerCase() !== "a"
+      ) {
         extraAttribute += ` role="${role}"`
       }
 
+      // Add the interactive-id attribute
+      const interactiveId = `${interactiveIdCounter}`
+      el.setAttribute("data-id", interactiveId)
+
+      interactiveIdCounter++
       // Return the element with only the interactive-id attribute and its text content
-      return `<${el.tagName.toLowerCase()} ${extraAttribute} data-interactive-id="${interactiveId}">${textContent}</${el.tagName.toLowerCase()}>`
+      return `<${el.tagName.toLowerCase()} ${extraAttribute} data-id="${interactiveId}">${textContent}</${el.tagName.toLowerCase()}>`
     })
     .filter((el) => el)
+
   // Join the array elements to form the final string
   const html = elementsArray.join("\n")
   res.send({ html: html.toString(), success: true })

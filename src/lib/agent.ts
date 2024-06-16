@@ -1,24 +1,22 @@
 import type { z } from "zod"
 
-import type { actionSchema } from "./actionHelper"
+import type { actionSchema, initialActionSchema } from "./actionHelper"
 import { addBase64ImageToFormData } from "./utils"
 
 const BASE_URL = "http://localhost:3000"
 type AvailableModels = "gpt" | "claude" | "gemini"
-type Plan = {
-  plan: string[]
-  action: { goto: string } | { search: string }
-}
-async function plan(
-  prompt: string,
-  model: AvailableModels = "gpt"
-): Promise<Plan> {
-  const response: Plan = await fetch(BASE_URL + "/api/agent/plan", {
-    body: JSON.stringify({
-      prompt,
-      model
-    })
-  }).then((res) => res.json())
+
+async function initialAction(prompt: string, model: AvailableModels = "gpt") {
+  const response: z.infer<typeof initialActionSchema> = await fetch(
+    BASE_URL + "/api/agent/plan",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        prompt,
+        model
+      })
+    }
+  ).then((res) => res.json())
 
   console.log(response)
   return response
@@ -27,10 +25,9 @@ async function plan(
 async function action(
   image: string[],
   html: string,
-  task: string,
+  objective: string,
   model: AvailableModels,
-  step: string,
-  completedSteps: string[]
+  actions_completed: string
 ) {
   const formData = new FormData()
   image.forEach((image) => {
@@ -38,11 +35,8 @@ async function action(
   })
   formData.append("html", html)
   formData.append("model", model)
-  formData.append("step", step)
-  formData.append("task", task)
-  completedSteps.forEach((step) => {
-    formData.append("completedSteps", step)
-  })
+  formData.append("objective", objective)
+  formData.append("actions_completed", actions_completed)
 
   const response: z.infer<typeof actionSchema> = await fetch(
     BASE_URL + "/api/agent/action",
@@ -61,7 +55,7 @@ async function content(
   model: AvailableModels = "gpt"
 ): Promise<ContentResponse> {
   const response: ContentResponse = await fetch(
-    BASE_URL + "api/agent/content",
+    BASE_URL + "/api/agent/content",
     {
       method: "POST",
       body: JSON.stringify({
@@ -75,7 +69,7 @@ async function content(
 }
 
 export const agentAPI = {
-  plan,
+  initialAction,
   action,
   content
 }

@@ -1,24 +1,24 @@
-import type { TypeTextOptions } from "@/contents/type"
-import { click, getHTML, scroll, typeText, wait } from "@/lib/actionHelper"
+import { click, getHTML, scroll, wait } from "@/lib/actionHelper"
 import { agentAPI } from "@/lib/agent"
 import { Authenticate } from "@/lib/authenticate"
+import { attachDebugger, detachDebugger } from "@/lib/chromeDebugger"
 import { navigate } from "@/lib/navigate"
 import { ping } from "@/lib/ping"
 import { takeScreenshot } from "@/lib/screenshot"
 import { search } from "@/lib/search"
-import { sleep } from "@/lib/utils"
+import { typeText } from "@/lib/type"
+import { formatActions } from "@/lib/utils"
 
 // import {z} from "zod"
-import { sendToContentScript, type PlasmoMessaging } from "@plasmohq/messaging"
+import { type PlasmoMessaging } from "@plasmohq/messaging"
 
 type WebsiteMessageData = {
-  prompt: string
+  objective: string
   type: "write" | "paste"
 }
 
 const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
   const reqBody = req.body as WebsiteMessageData
-
   try {
     const response = await Authenticate()
     console.log(response)
@@ -31,84 +31,125 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
   try {
     let window: chrome.windows.Window
     let tabId: number
-    let completedSteps = []
-    const { plan, action } = await agentAPI.plan(reqBody.prompt, "gpt")
+    let actions_completed: string
+    const initialAction = await agentAPI.initialAction(reqBody.objective, "gpt")
+    let requestNumber = 0
+    let nextAction
 
-    if (action && "goto" in action) {
-      window = await chrome.windows.create({
-        url: action.goto,
-        type: "popup"
-      })
-      tabId = window.tabs[0].id
-      await ping(tabId)
-      await wait(tabId)
+    res.send({ success: true })
+
+    switch (initialAction.operation) {
+      case "search": {
+        window = await search(initialAction.search_term)
+        tabId = window.tabs[0].id
+        await ping(tabId)
+        await wait(tabId)
+        actions_completed = formatActions([initialAction], actions_completed)
+        break
+      }
+      case "navigate_to": {
+        window = await chrome.windows.create({
+          url: initialAction.url,
+          type: "popup"
+        })
+        tabId = window.tabs[0].id
+        await ping(tabId)
+        await wait(tabId)
+        actions_completed = formatActions([initialAction], actions_completed)
+        break
+      }
     }
 
-    if (action && "search" in action) {
-      window = await search(action.search)
-      tabId = window.tabs[0].id
-      await ping(tabId)
-      await wait(tabId)
+    await detachDebugger(tabId)
+    try {
+      await attachDebugger(tabId)
+    } catch (e) {
+      res.send({
+        success: false,
+        message:
+          "You have an incompatible extension installed. Remove any extension that adds additional stuff in the website"
+      })
     }
 
     const screenshot = await takeScreenshot(window.id)
     const { html } = await getHTML(tabId)
 
-    let index = 0
-    while (completedSteps.length !== plan.length) {
-      const nextAction = await agentAPI.action(
+    console.log(screenshot, html)
+    while (nextAction) {
+      const screenshot = await takeScreenshot(window.id)
+      const { html } = await getHTML(tabId)
+
+      console.log(screenshot, html)
+      requestNumber++
+
+      nextAction = await agentAPI.action(
         [screenshot],
         html,
-        reqBody.prompt,
+        reqBody.objective,
         "gpt",
-        plan[index],
-        completedSteps
+        actions_completed
       )
 
-      if ("goto" in nextAction) {
-        await navigate(tabId, nextAction.goto)
-        await ping(tabId)
-        await wait(tabId)
-      }
+      for (const action of nextAction) {
+        console.log("Next Action", nextAction)
+        switch (action.operation) {
+          case "navigate_to": {
+            await navigate(tabId, action.url)
+            await ping(tabId)
+            await wait(tabId)
+            actions_completed = formatActions(action, actions_completed)
 
-      if ("type" in nextAction) {
-        await typeText(
-          tabId,
-          nextAction.type.selector,
-          nextAction.type.content,
-          "paste"
-        )
-      }
+            break
+          }
+          case "type": {
+            await typeText(tabId, action.text)
+            actions_completed = formatActions(action, actions_completed)
 
-      if ("click" in nextAction) {
-        await click(tabId, nextAction.click)
-      }
+            break
+          }
+          case "click": {
+            await click(tabId, `[data-id="${action.data_id}"]`)
+            actions_completed = formatActions(action, actions_completed)
 
-      if ("content_writing" in nextAction) {
-        const response = await agentAPI.content(
-          nextAction.content_writing.instruction,
-          "gpt"
-        )
-        await typeText(
-          tabId,
-          nextAction.content_writing.selector,
-          response.content,
-          "paste"
-        )
-      }
-      if ("scroll_up" in nextAction) {
-        await scroll(tabId, "up")
-      }
-      if ("scroll_down" in nextAction) {
-        await scroll(tabId, "down")
-      }
+            break
+          }
+          case "content_writing": {
+            const response = await agentAPI.content(action.instruction, "gpt")
+            actions_completed = formatActions(
+              action,
+              actions_completed,
+              response.content
+            )
 
-      if ("completed" in nextAction) {
-        completedSteps.push(plan[index])
-        index++
+            break
+          }
+          case "scroll_down": {
+            await scroll(tabId, "down")
+            actions_completed = formatActions(action, actions_completed)
+
+            break
+          }
+
+          case "scroll_up": {
+            await scroll(tabId, "up")
+            actions_completed = formatActions(action, actions_completed)
+            break
+          }
+          case "search": {
+            window = await search(action.search_term)
+            tabId = window.tabs[0].id
+            await ping(tabId)
+            await wait(tabId)
+            actions_completed = formatActions(action, actions_completed)
+            break
+          }
+          case "done": {
+            console.log("The task has been completed")
+            break
+          }
+        }
       }
     }
-    res.send({ success: true })
   } catch (error) {
     // Log the error and send a failure response
     console.error("Error in message handler:", error)

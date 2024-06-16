@@ -2,25 +2,6 @@ import { z } from "zod"
 
 import { sendToContentScript } from "@plasmohq/messaging"
 
-type TypeTextResponse = { success: boolean }
-export async function typeText(
-  tabId: number,
-  selector: string,
-  text: string,
-  type: "write" | "paste"
-): Promise<TypeTextResponse> {
-  return await sendToContentScript({
-    name: "type",
-    tabId,
-    body: {
-      selector,
-      text,
-      type,
-      name: "type"
-    }
-  })
-}
-
 type NavigateResponse = { success: boolean }
 export async function navigate(
   tabId: number,
@@ -87,79 +68,65 @@ export async function click(
   })
 }
 
-const navigateSchema = z.object({
-  goto: z
-    .string()
-    .url()
-    .optional()
-    .describe(
-      "URL to navigate to, if provided by the user. Use this format if you think going to a URL is the best option."
-    )
+const navigateToSchema = z.object({
+  thought: z.string(),
+  operation: z.literal("navigate_to"),
+  url: z.string().url()
+})
+
+const searchSchema = z.object({
+  thought: z.string(),
+  operation: z.literal("search"),
+  search_term: z.string()
 })
 
 const contentWritingSchema = z.object({
-  content_writing: z
-    .object({
-      instruction: z
-        .string()
-        .describe(
-          "Instruction for an AI model to write the content on the given topic. Use this format if you think you need to write content."
-        ),
-      selector: z
-        .string()
-        .describe(
-          "Selector the element in which the written content needs to be paste / inserted"
-        )
-    })
-    .optional()
+  thought: z.string(),
+  operation: z.literal("content_writing"),
+  instruction: z.string()
 })
+
 const typeSchema = z.object({
-  type: z
-    .object({
-      content: z.string().describe("What needs to be written"),
-      selector: z
-        .string()
-        .describe(
-          "data-interactive ID of the element in which the content needs to be written on"
-        )
-    })
-    .optional()
-    .describe(
-      "Use this format if you think writing on the webpage is the best action"
-    )
+  thought: z.string(),
+  operation: z.literal("type"),
+  text: z.string()
 })
 
 const clickSchema = z.object({
-  click: z
-    .string()
-    .optional()
-    .describe(
-      "data-interactive ID of the element to click on. Use this if you think clicking on the element is the best action"
-    )
+  thought: z.string(),
+  operation: z.literal("click"),
+  data_id: z.string()
 })
 
 const scrollUpSchema = z.object({
-  scroll_up: z.literal(true).optional().describe("Use this to scroll up")
+  thought: z.string(),
+  operation: z.literal("scroll_up")
 })
 
 const scrollDownSchema = z.object({
-  scroll_down: z.literal(true).optional().describe("Use this to scroll down")
+  thought: z.string(),
+  operation: z.literal("scroll_down")
 })
 
-const stepCompletedSchema = z.object({
-  completed: z
-    .literal(true)
-    .optional()
-    .describe("Use this when the task has been completed")
+const doneSchema = z.object({
+  thought: z.string(),
+  operation: z.literal("done"),
+  summary: z.string()
 })
-const actionSchema = z.union([
-  navigateSchema,
-  contentWritingSchema,
-  typeSchema,
-  clickSchema,
-  scrollUpSchema,
-  scrollDownSchema,
-  stepCompletedSchema
-])
 
+const actionSchema = z.array(
+  z.union([
+    navigateToSchema,
+    searchSchema,
+    contentWritingSchema,
+    typeSchema,
+    clickSchema,
+    scrollUpSchema,
+    scrollDownSchema,
+    doneSchema
+  ])
+)
+
+export const initialActionSchema = z.union([searchSchema, navigateToSchema])
 export { actionSchema }
+type action = z.infer<typeof actionSchema>
