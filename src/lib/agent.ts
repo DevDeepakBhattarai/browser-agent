@@ -6,13 +6,16 @@ import { addBase64ImageToFormData } from "./utils"
 const BASE_URL = "http://localhost:3000"
 type AvailableModels = "gpt" | "claude" | "gemini"
 
-async function initialAction(prompt: string, model: AvailableModels = "gpt") {
+async function initialAction(
+  objective: string,
+  model: AvailableModels = "gpt"
+) {
   const response: z.infer<typeof initialActionSchema> = await fetch(
     BASE_URL + "/api/agent/plan",
     {
       method: "POST",
       body: JSON.stringify({
-        prompt,
+        objective,
         model
       })
     }

@@ -3,8 +3,8 @@ import { create } from "zustand"
 export type PreviewImage = { id: string; url: string }
 
 type InputState = {
-  prompt: string
-  setPrompt: (update: string | ((prev: string) => string)) => void
+  objective: string
+  setObjective: (update: string | ((prev: string) => string)) => void
   previewImages: PreviewImage[]
   setPreviewImages: (
     update: PreviewImage[] | ((prev: PreviewImage[]) => PreviewImage[])
@@ -12,10 +12,10 @@ type InputState = {
 }
 
 export const useInput = create<InputState>((set) => ({
-  prompt: "",
-  setPrompt: (update) =>
+  objective: "",
+  setObjective: (update) =>
     set((state) => ({
-      prompt: typeof update === "function" ? update(state.prompt) : update
+      objective: typeof update === "function" ? update(state.objective) : update
     })),
   previewImages: [],
   setPreviewImages: (update) =>

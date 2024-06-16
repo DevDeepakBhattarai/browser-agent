@@ -14,7 +14,7 @@ const MAX_HEIGHT = 100
 const TextAreaResizeExample = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { previewImages, setPreviewImages, setPrompt } = useInput()
+  const { previewImages, setPreviewImages, setObjective } = useInput()
 
   return (
     <div className="group relative h-auto rounded-md">
@@ -40,7 +40,7 @@ const TextAreaResizeExample = () => {
           rows={1}
           className="w-full min-h-10 flex-1 resize-none text-black"
           placeholder="What's next ?"
-          onChange={(e) => setPrompt(e.target.value)}
+          onChange={(e) => setObjective(e.target.value)}
           onInput={handleInput}
           onPaste={handlePaste}></Textarea>
 
