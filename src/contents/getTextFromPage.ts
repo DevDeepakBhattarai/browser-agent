@@ -3,7 +3,7 @@ import { listen } from "@plasmohq/messaging/message"
 type ReqData = { name: string }
 listen((req, res) => {
   const reqData = req.body as ReqData
-  if (reqData.name !== "getInteractiveElements") return
+  if (reqData.name !== "getTextFromPage") return
 
   function getPageTextContent() {
     const excludedTags = [
@@ -89,7 +89,7 @@ listen((req, res) => {
           return
         }
         if (blockLevelTags.includes(node.tagName) && addNewLine) {
-          textContent += "\n"
+          textContent = textContent.trim() + "\n"
         }
       }
       if (node.nodeType === Node.TEXT_NODE) {

@@ -54,9 +54,9 @@ export function formatActions(
         result += `- Initiated Information gathering form page with instruction ${action.instruction}\n`
         if (extraContent) {
           if (extraContent === "NO_INFORMATION") {
-            result += `But could not find and information based the request`
+            result += `But could not find and information based the request\n`
           }
-          result += `- Found the following information : ${extraContent}`
+          result += `- Found the following information : ${extraContent}\n`
         }
         break
       }
@@ -90,5 +90,5 @@ export function formatActions(
     }
   }
 
-  return result.trim() // Trim trailing newline if needed
+  return result // Trim trailing newline if needed
 }

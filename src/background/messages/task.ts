@@ -14,7 +14,7 @@ import { ping } from "@/lib/ping"
 import { takeScreenshot } from "@/lib/screenshot"
 import { search } from "@/lib/search"
 import { typeText } from "@/lib/type"
-import { formatActions } from "@/lib/utils"
+import { formatActions, sleep } from "@/lib/utils"
 import type { z } from "zod"
 
 import { type PlasmoMessaging } from "@plasmohq/messaging"
@@ -40,7 +40,7 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
   try {
     let window: chrome.windows.Window
     let tabId: number
-    let actions_completed: string
+    let actions_completed = ""
     let requestNumber = 0
     let nextAction: z.infer<typeof actionSchema>
     let isObjectiveComplete: boolean = false
@@ -98,6 +98,7 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
       console.log("Next Action", nextAction)
 
       for (const action of nextAction) {
+        console.log(action.thought)
         switch (action.operation) {
           case "navigate_to": {
             await navigate(tabId, action.url)
@@ -132,6 +133,7 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
           case "click": {
             await click(tabId, `[data-id="${action.data_id}"]`)
             actions_completed = formatActions([action], actions_completed)
+            await sleep(2000)
             break
           }
 
