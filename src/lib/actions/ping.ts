@@ -1,6 +1,6 @@
 import { sendToContentScript } from "@plasmohq/messaging"
 
-import { sleep } from "./utils"
+import { sleep } from "../utils"
 
 export async function ping(tabId: number) {
   let initialResponse

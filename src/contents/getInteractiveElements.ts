@@ -71,8 +71,14 @@ listen((req, res) => {
     .filter((el) => el)
 
   // Join the array elements to form the final string
-  const html = elementsArray.join("\n")
-  res.send({ html: html.toString(), success: true })
+  let html = elementsArray.join("\n")
+  ;(html = html.toString()
+    ? html.toString()
+    : "There are not interactive elements"),
+    res.send({
+      html: html,
+      success: true
+    })
 })
 
 function isElementVisible(el) {

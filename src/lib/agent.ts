@@ -86,8 +86,8 @@ async function gatherInformationFromPage(
       method: "POST",
       body: JSON.stringify({
         instruction: instruction,
-        model,
-        page_content
+        model: model,
+        page_content: page_content
       })
     }
   ).then((res) => res.json())

@@ -16,16 +16,16 @@ export async function navigate(
     }
   })
 }
-type WaitResponse = { success: boolean }
-export async function wait(tabId: number): Promise<WaitResponse> {
-  return await sendToContentScript({
-    name: "wait",
-    tabId,
-    body: {
-      name: "wait"
-    }
-  })
-}
+// type WaitResponse = { success: boolean }
+// export async function wait(tabId: number): Promise<WaitResponse> {
+//   return await sendToContentScript({
+//     name: "wait",
+//     tabId,
+//     body: {
+//       name: "wait"
+//     }
+//   })
+// }
 
 type ScrollResponse = { success: boolean }
 export async function scroll(
@@ -110,14 +110,11 @@ const clickSchema = z.object({
   data_id: z.string()
 })
 
-const scrollUpSchema = z.object({
+const scrollSchema = z.object({
   thought: z.string(),
-  operation: z.literal("scroll_up")
-})
-
-const scrollDownSchema = z.object({
-  thought: z.string(),
-  operation: z.literal("scroll_down")
+  operation: z.literal("scroll"),
+  content: z.string(),
+  direction: z.union([z.literal("up"), z.literal("down")])
 })
 
 const doneSchema = z.object({
@@ -138,8 +135,7 @@ const actionSchema = z.array(
     contentWritingSchema,
     typeSchema,
     clickSchema,
-    scrollUpSchema,
-    scrollDownSchema,
+    scrollSchema,
     doneSchema,
     gatherInfoSchema
   ])

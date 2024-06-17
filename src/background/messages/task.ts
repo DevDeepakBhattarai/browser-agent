@@ -3,17 +3,17 @@ import {
   click,
   getInteractiveElements,
   getTextFromPage,
-  scroll,
-  wait
+  scroll
 } from "@/lib/actionHelper"
+import { Authenticate } from "@/lib/actions/authenticate"
+import { navigate } from "@/lib/actions/navigate"
+import { ping } from "@/lib/actions/ping"
+import { takeScreenshot } from "@/lib/actions/screenshot"
+import { search } from "@/lib/actions/search"
+import { typeText } from "@/lib/actions/type"
+import { wait } from "@/lib/actions/wait"
 import { agentAPI } from "@/lib/agent"
-import { Authenticate } from "@/lib/authenticate"
 import { attachDebugger, detachDebugger } from "@/lib/chromeDebugger"
-import { navigate } from "@/lib/navigate"
-import { ping } from "@/lib/ping"
-import { takeScreenshot } from "@/lib/screenshot"
-import { search } from "@/lib/search"
-import { typeText } from "@/lib/type"
 import { formatActions, sleep } from "@/lib/utils"
 import type { z } from "zod"
 
@@ -147,16 +147,13 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
 
             break
           }
-          case "scroll_down": {
-            await scroll(tabId, "down")
-            actions_completed = formatActions([action], actions_completed)
-
-            break
-          }
-
-          case "scroll_up": {
-            await scroll(tabId, "up")
-            actions_completed = formatActions([action], actions_completed)
+          case "scroll": {
+            await scroll(tabId, action.direction)
+            actions_completed = formatActions(
+              [action],
+              actions_completed,
+              action.content
+            )
             break
           }
 

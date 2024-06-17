@@ -2,9 +2,10 @@ export async function Authenticate() {
   const cookies = await chrome.cookies.getAll({
     url: process.env.PLASMO_PUBLIC_WEBSITE_URL
   })
+  console.log(cookies)
 
   const authToken = cookies.find(
-    (cookie) => cookie.name === process.env.PLASMO_PUBLIC_AUTH_TOKEN_NAME
+    (cookie) => cookie.name === "authjs.session-token"
   ).value
 
   if (!authToken) {

@@ -102,7 +102,7 @@ listen((req, res) => {
 
     collectText(document.body, false)
 
-    return textContent.trim()
+    return textContent
   }
 
   const pageTextContent = getPageTextContent()

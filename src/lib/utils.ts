@@ -66,14 +66,11 @@ export function formatActions(
           result += `- Content that was generated was : ${extraContent}\n`
         break
       }
-      case "scroll_down": {
-        result += `- Scrolled down\n`
+      case "scroll": {
+        result += `- Scrolled ${action.direction} after seeing the following information on the page: ${extraContent}\n`
         break
       }
-      case "scroll_up": {
-        result += `- Scrolled up\n`
-        break
-      }
+
       case "search": {
         result += `- Searched for "${action.search_term}"\n`
         break
