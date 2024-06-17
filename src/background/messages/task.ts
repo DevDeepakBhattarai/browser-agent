@@ -1,4 +1,11 @@
-import { click, getHTML, scroll, wait } from "@/lib/actionHelper"
+import {
+  actionSchema,
+  click,
+  getInteractiveElements,
+  getTextFromPage,
+  scroll,
+  wait
+} from "@/lib/actionHelper"
 import { agentAPI } from "@/lib/agent"
 import { Authenticate } from "@/lib/authenticate"
 import { attachDebugger, detachDebugger } from "@/lib/chromeDebugger"
@@ -8,9 +15,11 @@ import { takeScreenshot } from "@/lib/screenshot"
 import { search } from "@/lib/search"
 import { typeText } from "@/lib/type"
 import { formatActions } from "@/lib/utils"
+import type { z } from "zod"
 
-// import {z} from "zod"
 import { type PlasmoMessaging } from "@plasmohq/messaging"
+
+const MODEL = "gpt"
 
 type WebsiteMessageData = {
   objective: string
@@ -32,10 +41,11 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
     let window: chrome.windows.Window
     let tabId: number
     let actions_completed: string
-    const initialAction = await agentAPI.initialAction(reqBody.objective, "gpt")
     let requestNumber = 0
-    let nextAction
+    let nextAction: z.infer<typeof actionSchema>
+    let isObjectiveComplete: boolean = false
 
+    const initialAction = await agentAPI.initialAction(reqBody.objective, MODEL)
     res.send({ success: true })
 
     switch (initialAction.operation) {
@@ -71,13 +81,9 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
       })
     }
 
-    const screenshot = await takeScreenshot(window.id)
-    const { html } = await getHTML(tabId)
-
-    console.log(screenshot, html)
-    while (nextAction) {
+    while (!isObjectiveComplete) {
       const screenshot = await takeScreenshot(window.id)
-      const { html } = await getHTML(tabId)
+      const { html } = await getInteractiveElements(tabId)
 
       console.log(screenshot, html)
       requestNumber++
@@ -86,37 +92,53 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
         [screenshot],
         html,
         reqBody.objective,
-        "gpt",
+        MODEL,
         actions_completed
       )
+      console.log("Next Action", nextAction)
 
       for (const action of nextAction) {
-        console.log("Next Action", nextAction)
         switch (action.operation) {
           case "navigate_to": {
             await navigate(tabId, action.url)
             await ping(tabId)
             await wait(tabId)
-            actions_completed = formatActions(action, actions_completed)
-
+            actions_completed = formatActions([action], actions_completed)
             break
           }
+
           case "type": {
             await typeText(tabId, action.text)
-            actions_completed = formatActions(action, actions_completed)
+            actions_completed = formatActions([action], actions_completed)
+            break
+          }
+          case "gather_information_from_page": {
+            const { page_content } = await getTextFromPage(tabId)
+            const response = await agentAPI.gatherInformationFromPage(
+              action.instruction,
+              page_content
+            )
+            const page_data = response.is_data_available
+              ? response.page_data
+              : "NO_INFORMATION"
 
+            actions_completed = formatActions(
+              [action],
+              actions_completed,
+              page_data
+            )
             break
           }
           case "click": {
             await click(tabId, `[data-id="${action.data_id}"]`)
-            actions_completed = formatActions(action, actions_completed)
-
+            actions_completed = formatActions([action], actions_completed)
             break
           }
+
           case "content_writing": {
-            const response = await agentAPI.content(action.instruction, "gpt")
+            const response = await agentAPI.content(action.instruction, MODEL)
             actions_completed = formatActions(
-              action,
+              [action],
               actions_completed,
               response.content
             )
@@ -125,26 +147,28 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
           }
           case "scroll_down": {
             await scroll(tabId, "down")
-            actions_completed = formatActions(action, actions_completed)
+            actions_completed = formatActions([action], actions_completed)
 
             break
           }
 
           case "scroll_up": {
             await scroll(tabId, "up")
-            actions_completed = formatActions(action, actions_completed)
+            actions_completed = formatActions([action], actions_completed)
             break
           }
+
           case "search": {
             window = await search(action.search_term)
             tabId = window.tabs[0].id
             await ping(tabId)
             await wait(tabId)
-            actions_completed = formatActions(action, actions_completed)
+            actions_completed = formatActions([action], actions_completed)
             break
           }
           case "done": {
             console.log("The task has been completed")
+            isObjectiveComplete = true
             break
           }
         }

@@ -71,8 +71,33 @@ async function content(
   return response
 }
 
+type GatherInformationResponse = {
+  page_data: string
+  is_data_available: boolean
+}
+async function gatherInformationFromPage(
+  instruction: string,
+  page_content: string,
+  model: AvailableModels = "gpt"
+) {
+  const response: GatherInformationResponse = await fetch(
+    BASE_URL + "/api/agent/gather-information",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        instruction: instruction,
+        model,
+        page_content
+      })
+    }
+  ).then((res) => res.json())
+
+  return response
+}
+
 export const agentAPI = {
   initialAction,
   action,
-  content
+  content,
+  gatherInformationFromPage
 }

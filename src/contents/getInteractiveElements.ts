@@ -3,7 +3,7 @@ import { listen } from "@plasmohq/messaging/message"
 type ReqData = { name: string }
 listen((req, res) => {
   const reqData = req.body as ReqData
-  if (reqData.name !== "getHTML") return
+  if (reqData.name !== "getInteractiveElements") return
 
   const elements = document.querySelectorAll(
     "button, a, textarea, input, [role=menuitem], [role=button], [role=textbox], [role=option], [contenteditable=true]"

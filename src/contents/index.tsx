@@ -1,7 +1,10 @@
 import { sleep } from "@/lib/utils"
+import { Readability } from "@mozilla/readability"
 import cssText from "data-text:@/style.css"
 import type { PlasmoCSConfig } from "plasmo"
 import { useEffect } from "react"
+
+import { sendToBackground, sendToContentScript } from "@plasmohq/messaging"
 
 import ChatTrigger from "../components/chat/ChatTrigger"
 import ChatWindow from "../components/chat/ChatWindow"

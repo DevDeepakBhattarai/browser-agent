@@ -42,13 +42,25 @@ export async function scroll(
   })
 }
 
-type GetHTMLResponse = { html: string; success: boolean }
-export async function getHTML(tabId: number): Promise<GetHTMLResponse> {
+type GetInteractiveElementsResponse = { html: string; success: boolean }
+export async function getInteractiveElements(
+  tabId: number
+): Promise<GetInteractiveElementsResponse> {
   return await sendToContentScript({
-    name: "getHTML",
+    name: "getInteractiveElements",
     tabId,
     body: {
-      name: "getHTML"
+      name: "getInteractiveElements"
+    }
+  })
+}
+type GetTextFromPage = { page_content: string; success: boolean }
+export async function getTextFromPage(tabId: number): Promise<GetTextFromPage> {
+  return await sendToContentScript({
+    name: "getTextFromPage",
+    tabId,
+    body: {
+      name: "getTextFromPage"
     }
   })
 }
@@ -113,6 +125,11 @@ const doneSchema = z.object({
   operation: z.literal("done"),
   summary: z.string()
 })
+const gatherInfoSchema = z.object({
+  thought: z.string(),
+  operation: z.literal("gather_information_from_page"),
+  instruction: z.string()
+})
 
 const actionSchema = z.array(
   z.union([
@@ -123,7 +140,8 @@ const actionSchema = z.array(
     clickSchema,
     scrollUpSchema,
     scrollDownSchema,
-    doneSchema
+    doneSchema,
+    gatherInfoSchema
   ])
 )
 

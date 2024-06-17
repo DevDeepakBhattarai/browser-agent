@@ -33,7 +33,7 @@ export function addBase64ImageToFormData(
 export function formatActions(
   actions: z.infer<typeof actionSchema>,
   oldActionString: string,
-  generated_content?: string
+  extraContent?: string
 ) {
   let result = oldActionString
   for (const action of actions) {
@@ -50,10 +50,20 @@ export function formatActions(
         result += `- Clicked on element with data ID "${action.data_id}"\n`
         break
       }
+      case "gather_information_from_page": {
+        result += `- Initiated Information gathering form page with instruction ${action.instruction}\n`
+        if (extraContent) {
+          if (extraContent === "NO_INFORMATION") {
+            result += `But could not find and information based the request`
+          }
+          result += `- Found the following information : ${extraContent}`
+        }
+        break
+      }
       case "content_writing": {
         result += `- Performed content writing with instruction: "${action.instruction}"\n`
-        if (generated_content)
-          result += `- Content that was generated was : ${generated_content}\n`
+        if (extraContent)
+          result += `- Content that was generated was : ${extraContent}\n`
         break
       }
       case "scroll_down": {
