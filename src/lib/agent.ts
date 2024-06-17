@@ -3,7 +3,7 @@ import type { z } from "zod"
 import type { actionSchema, initialActionSchema } from "./actionHelper"
 import { addBase64ImageToFormData } from "./utils"
 
-const BASE_URL = "http://localhost:3000"
+const BASE_URL = process.env.PLASMO_PUBLIC_WEBSITE_URL
 type AvailableModels = "gpt" | "claude" | "gemini"
 
 async function initialAction(
