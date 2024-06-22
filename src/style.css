@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+#plasmo-shadow-container {
+  font-size: 16px !important;
+}
+
+#plasmo-inline {
+  font-size: 16px !important;
+}

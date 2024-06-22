@@ -1,10 +1,9 @@
 import { sleep } from "@/lib/utils"
-import { Readability } from "@mozilla/readability"
+import { useChatMessages } from "@/states/message-state"
 import cssText from "data-text:@/style.css"
 import type { PlasmoCSConfig } from "plasmo"
-import { useEffect } from "react"
 
-import { sendToBackground, sendToContentScript } from "@plasmohq/messaging"
+import { useMessage } from "@plasmohq/messaging/hook"
 
 import ChatTrigger from "../components/chat/ChatTrigger"
 import ChatWindow from "../components/chat/ChatWindow"
@@ -20,10 +19,44 @@ export const getStyle = () => {
   return style
 }
 
+type MessageType = {
+  message: string
+  type: "message"
+}
+
+type PopupType = {
+  action: "close" | "open"
+  type: "popup"
+}
+
+type RequestData = MessageType | PopupType
+
 const PlasmoOverlay = () => {
-  const { isModalOpen } = useModal()
+  const { isModalOpen, setIsModalOpen } = useModal()
+  const { setMessages } = useChatMessages()
+  const response = useMessage((req, res) => {
+    const reqBody = req.body as RequestData
+    switch (reqBody.type) {
+      case "message":
+        setMessages((prev) => [
+          ...prev,
+          { content: reqBody.message, sender: "AI" }
+        ])
+        res.send({ success: true })
+        break
+      case "popup":
+        if (reqBody.action === "open") {
+          setIsModalOpen(true)
+          res.send({ success: true })
+        }
+        if (reqBody.action === "close") {
+          setIsModalOpen(false)
+          res.send({ success: true })
+        }
+    }
+  })
   return (
-    <div className="z-50 flex fixed bottom-32 right-0">
+    <div className="z-50 flex fixed bottom-32 right-0 !text-[16px]">
       <ChatTrigger></ChatTrigger>
       {isModalOpen && <ChatWindow />}
     </div>

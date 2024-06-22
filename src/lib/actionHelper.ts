@@ -80,6 +80,37 @@ export async function click(
   })
 }
 
+export async function openModal(tabId: number) {
+  return sendToContentScript({
+    tabId: tabId,
+    name: "index",
+    body: {
+      type: "popup",
+      action: "open"
+    }
+  })
+}
+export async function closeModal(tabId: number) {
+  return sendToContentScript({
+    tabId: tabId,
+    name: "index",
+    body: {
+      type: "popup",
+      action: "close"
+    }
+  })
+}
+export async function updateMessage(tabId: number, message: string) {
+  return sendToContentScript({
+    tabId: tabId,
+    name: "index",
+    body: {
+      type: "message",
+      message: message
+    }
+  })
+}
+
 const navigateToSchema = z.object({
   thought: z.string(),
   operation: z.literal("navigate_to"),
@@ -107,7 +138,8 @@ const typeSchema = z.object({
 const clickSchema = z.object({
   thought: z.string(),
   operation: z.literal("click"),
-  data_id: z.string()
+  data_id: z.string(),
+  text: z.string()
 })
 
 const scrollSchema = z.object({
@@ -141,6 +173,22 @@ const actionSchema = z.array(
   ])
 )
 
+const resultSchema = z.object({
+  result: z.string().optional()
+})
+
+export const actionHistorySchema = z.array(
+  z.union([
+    navigateToSchema.merge(resultSchema),
+    searchSchema.merge(resultSchema),
+    contentWritingSchema.merge(resultSchema),
+    typeSchema.merge(resultSchema),
+    clickSchema.merge(resultSchema),
+    scrollSchema.merge(resultSchema),
+    doneSchema.merge(resultSchema),
+    gatherInfoSchema.merge(resultSchema)
+  ])
+)
+
 export const initialActionSchema = z.union([searchSchema, navigateToSchema])
 export { actionSchema }
-type action = z.infer<typeof actionSchema>

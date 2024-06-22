@@ -1,7 +1,5 @@
 export async function navigate(tabId: number, url: string) {
   const tab = await chrome.tabs.get(tabId)
-  console.log(tab)
-
   if (tab.status === "loading") {
     await new Promise<void>((resolve) => {
       const listener = async (
@@ -21,8 +19,6 @@ export async function navigate(tabId: number, url: string) {
   }
 
   const updatedTab = await chrome.tabs.update(tabId, { url: url })
-  console.log(updatedTab)
-
   await new Promise<void>((resolve) => {
     const listener = async (
       tabId: number,

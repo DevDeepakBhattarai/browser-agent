@@ -2,7 +2,7 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { z } from "zod"
 
-import type { actionSchema } from "./actionHelper"
+import type { actionHistorySchema, actionSchema } from "./actionHelper"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -28,64 +28,60 @@ export function addBase64ImageToFormData(
   formData.append("image", blob, "screenshot.jpg")
 }
 
-// Define your schemas as before
-
 export function formatActions(
-  actions: z.infer<typeof actionSchema>,
-  oldActionString: string,
-  extraContent?: string
+  fullActionsHistory: z.infer<typeof actionHistorySchema>
 ) {
-  let result = oldActionString
-  for (const action of actions) {
+  let actionString = ""
+  for (const action of fullActionsHistory) {
+    actionString += `-|Operation: ${action.operation}\n`
+
     switch (action.operation) {
       case "navigate_to": {
-        result += `- Navigated to ${action.url}\n`
+        actionString += `Result: Navigated to ${action.url}\n`
         break
       }
       case "type": {
-        result += `- Typed "${action.text}"\n`
+        actionString += `Result: Typed "${action.text}"\n`
         break
       }
       case "click": {
-        result += `- Clicked on element with data ID "${action.data_id}"\n`
+        actionString += `Result: Clicked on element with text or aria-label "${action.text}"\n`
         break
       }
       case "gather_information_from_page": {
-        result += `- Initiated Information gathering form page with instruction ${action.instruction}\n`
-        if (extraContent) {
-          if (extraContent === "NO_INFORMATION") {
-            result += `But could not find and information based the request\n`
-          }
-          result += `- Found the following information : ${extraContent}\n`
+        actionString += `Result: Initiated Information gathering from page with instruction: ${action.instruction}\n`
+        if (action.result === "NO_INFORMATION") {
+          actionString += `Result: Could not find any information based on the request\n`
+        } else {
+          actionString += `Result: Found the following information: ${action.result}\n`
         }
         break
       }
       case "content_writing": {
-        result += `- Performed content writing with instruction: "${action.instruction}"\n`
-        if (extraContent)
-          result += `- Content that was generated was : ${extraContent}\n`
+        actionString += `Result: Performed content writing with instruction: "${action.instruction}"\n`
+        if (action.result) {
+          actionString += `Result: Content that was generated was: ${action.result}\n`
+        }
         break
       }
       case "scroll": {
-        result += `- Scrolled ${action.direction} after seeing the following information on the page: ${extraContent}\n`
+        actionString += `Result: Scrolled ${action.direction} after seeing the following information on the page: ${action.result}\n`
         break
       }
-
       case "search": {
-        result += `- Searched for "${action.search_term}"\n`
+        actionString += `Result: Searched for "${action.search_term} on google"\n`
         break
       }
       case "done": {
-        result += `- Completed with summary: "${action.summary}"\n`
+        actionString += `Result: Completed with summary: "${action.summary}"\n`
         break
       }
       default: {
         // Handle any unexpected operation types
-        result += `- There was an error\n`
+        actionString += `Result: There was an error\n`
         break
       }
     }
   }
-
-  return result // Trim trailing newline if needed
+  return actionString
 }

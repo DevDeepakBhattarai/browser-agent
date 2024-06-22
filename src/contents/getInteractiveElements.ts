@@ -45,6 +45,7 @@ listen((req, res) => {
       if (
         !ariaLabel &&
         !textContent &&
+        !el.hasChildNodes() &&
         (el.tagName.toLowerCase() === "a" ||
           el.tagName.toLowerCase() === "button")
       ) {

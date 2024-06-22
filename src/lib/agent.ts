@@ -1,6 +1,10 @@
 import type { z } from "zod"
 
-import type { actionSchema, initialActionSchema } from "./actionHelper"
+import type {
+  actionHistorySchema,
+  actionSchema,
+  initialActionSchema
+} from "./actionHelper"
 import { addBase64ImageToFormData } from "./utils"
 
 const BASE_URL = process.env.PLASMO_PUBLIC_WEBSITE_URL
@@ -30,26 +34,32 @@ async function action(
   html: string,
   objective: string,
   model: AvailableModels,
-  actions_completed: string
+  actions_completed: string,
+  summary: string | undefined
 ) {
   const formData = new FormData()
+  // Add all the images to the form Data
   image.forEach((image) => {
     addBase64ImageToFormData(image, formData)
   })
+
   formData.append("html", html)
   formData.append("model", model)
   formData.append("objective", objective)
   formData.append("actions_completed", actions_completed)
+  // Check if the previous summary of the action exists and if it does add it , else not
+  if (summary) {
+    formData.append("summary", summary)
+  }
 
-  const response: z.infer<typeof actionSchema> = await fetch(
-    BASE_URL + "/api/agent/action",
-    {
-      method: "POST",
-      body: formData
-    }
-  ).then((res) => res.json())
-
-  return response
+  const response: {
+    action: z.infer<typeof actionSchema>
+    summary: string | undefined
+  } = await fetch(BASE_URL + "/api/agent/action", {
+    method: "POST",
+    body: formData
+  }).then((res) => res.json())
+  return { action: response.action, summary: response.summary }
 }
 
 type ContentResponse = { content: string }
