@@ -3,7 +3,6 @@ import {
   closeModal,
   getInteractiveElements,
   getTextFromPage,
-  initialActionSchema,
   openModal,
   scroll,
   updateMessage,
@@ -19,7 +18,6 @@ import { wait } from "@/lib/actions/wait"
 import { agentAPI } from "@/lib/agent"
 import { attachDebugger, detachDebugger } from "@/lib/chromeDebugger"
 import { sleep } from "@/lib/utils"
-import type { z } from "zod"
 
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 import { Storage } from "@plasmohq/storage"
@@ -36,6 +34,7 @@ type WebsiteMessageData = {
 const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
   const reqBody = req.body as WebsiteMessageData
   const objectiveId = reqBody.objectiveId ?? "1234567"
+  await storage.clear()
   try {
     const response = await Authenticate()
     console.log(response)
@@ -65,7 +64,11 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
       return (await storage.get<Action[]>(`actions_${objectiveId}`)) || []
     }
 
-    const initialAction = await agentAPI.initialAction(reqBody.objective, MODEL)
+    const initialAction = await agentAPI.initialAction(
+      reqBody.objective,
+      objectiveId,
+      MODEL
+    )
     res.send({ success: true })
 
     // Store the initial action
@@ -75,22 +78,21 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
         window = await search(initialAction.search_term)
         tabId = window.tabs[0].id
         await ping(tabId)
-        await wait(tabId)
         await updateMessage(tabId, [initialAction])
         await openModal(tabId)
+        await wait(tabId)
         break
       }
       case "navigate_to": {
         window = await chrome.windows.create({
           url: initialAction.url,
-          type: "popup",
-          state: "maximized"
+          type: "popup"
         })
         tabId = window.tabs[0].id
         await ping(tabId)
-        await wait(tabId)
         await updateMessage(tabId, [initialAction])
         await openModal(tabId)
+        await wait(tabId)
         break
       }
     }
@@ -137,8 +139,8 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
           case "navigate_to": {
             await navigate(tabId, action.url)
             await ping(tabId)
-            await wait(tabId)
             await updateMessage(tabId, allActions)
+            await wait(tabId)
 
             break
           }
@@ -152,7 +154,9 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
             const { page_content } = await getTextFromPage(tabId)
             const response = await agentAPI.gatherInformationFromPage(
               action.instruction,
-              page_content
+              page_content,
+              MODEL,
+              objectiveId
             )
             const page_data = response.is_data_available
               ? response.page_data
@@ -170,7 +174,11 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
             break
           }
           case "content_writing": {
-            const response = await agentAPI.content(action.instruction, MODEL)
+            const response = await agentAPI.content(
+              action.instruction,
+              MODEL,
+              objectiveId
+            )
             await updateMessage(tabId, allActions)
             break
           }
@@ -192,6 +200,7 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
           case "done": {
             console.log("The task has been completed")
             isObjectiveComplete = true
+            await updateMessage(tabId, allActions)
             break
           }
         }

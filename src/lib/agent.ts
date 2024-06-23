@@ -13,6 +13,7 @@ type AvailableModels = "gpt" | "claude" | "gemini"
 
 async function initialAction(
   objective: string,
+  objectiveId: string,
   model: AvailableModels = "gpt"
 ) {
   const response: z.infer<typeof initialActionSchema> = await fetch(
@@ -21,6 +22,7 @@ async function initialAction(
       method: "POST",
       body: JSON.stringify({
         objective,
+        objectiveId,
         model
       })
     }
@@ -58,7 +60,8 @@ async function action(
 type ContentResponse = { content: string }
 async function content(
   instruction: string,
-  model: AvailableModels = "gpt"
+  model: AvailableModels = "gpt",
+  objectiveId: string
 ): Promise<ContentResponse> {
   const response: ContentResponse = await fetch(
     BASE_URL + "/api/agent/content",
@@ -66,7 +69,8 @@ async function content(
       method: "POST",
       body: JSON.stringify({
         prompt: instruction,
-        model
+        model,
+        objectiveId
       })
     }
   ).then((res) => res.json())
@@ -81,7 +85,8 @@ type GatherInformationResponse = {
 async function gatherInformationFromPage(
   instruction: string,
   page_content: string,
-  model: AvailableModels = "gpt"
+  model: AvailableModels = "gpt",
+  objectiveId: string
 ) {
   const response: GatherInformationResponse = await fetch(
     BASE_URL + "/api/agent/gather-information",
@@ -90,7 +95,8 @@ async function gatherInformationFromPage(
       body: JSON.stringify({
         instruction: instruction,
         model: model,
-        page_content: page_content
+        page_content: page_content,
+        objectiveId
       })
     }
   ).then((res) => res.json())

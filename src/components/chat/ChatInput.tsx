@@ -36,7 +36,6 @@ const TextAreaResizeExample = () => {
 
         <Textarea
           ref={textareaRef}
-          autoFocus
           rows={1}
           className="w-full min-h-10 flex-1 resize-none text-black"
           placeholder="What's next ?"
