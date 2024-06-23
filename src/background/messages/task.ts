@@ -1,5 +1,4 @@
 import {
-  actionSchema,
   click,
   closeModal,
   getInteractiveElements,
@@ -7,7 +6,8 @@ import {
   initialActionSchema,
   openModal,
   scroll,
-  updateMessage
+  updateMessage,
+  type Action
 } from "@/lib/actionHelper"
 import { Authenticate } from "@/lib/actions/authenticate"
 import { navigate } from "@/lib/actions/navigate"
@@ -49,22 +49,20 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
     let window: chrome.windows.Window
     let tabId: number
     let requestNumber = 0
-    let nextAction: z.inferAction[]
+    let nextAction: Action[]
     let isObjectiveComplete: boolean = false
 
     // Function to store actions
-    async function storeActions(actions: z.inferAction[]) {
+    async function storeActions(actions: Action[]) {
       const storedActions =
-        (await storage.get<z.inferAction[]>(`actions_${objectiveId}`)) || []
+        (await storage.get<Action[]>(`actions_${objectiveId}`)) || []
       const updatedActions = [...storedActions, ...actions]
       await storage.set(`actions_${objectiveId}`, updatedActions)
     }
 
     // Function to get stored actions
-    async function getStoredActions(): Promise<z.inferAction[]> {
-      return (
-        (await storage.get<z.inferAction[]>(`actions_${objectiveId}`)) || []
-      )
+    async function getStoredActions(): Promise<Action[]> {
+      return (await storage.get<Action[]>(`actions_${objectiveId}`)) || []
     }
 
     const initialAction = await agentAPI.initialAction(reqBody.objective, MODEL)
