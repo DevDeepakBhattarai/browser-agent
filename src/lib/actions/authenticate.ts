@@ -5,7 +5,7 @@ export async function Authenticate() {
   console.log(cookies)
 
   const authToken = cookies.find(
-    (cookie) => cookie.name === "authjs.session-token"
+    (cookie) => cookie.name === process.env.PLASMO_PUBLIC_AUTH_TOKEN_NAME
   ).value
 
   if (!authToken) {
