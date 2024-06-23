@@ -25,7 +25,7 @@ export default function ChatTrigger() {
           dragConstraints={{ top: -window.screen.availHeight, bottom: 128 }}
           dragMomentum={false}
           className="">
-          <div className="grid place-items-center h-[36px] w-[40px] rounded-l-md text-white bg-black">
+          <div className="grid place-items-center h-[36px] w-[40px] rounded-l-md text-white bg-black cursor-pointer active:scale-95 hover:scale-105 transition-all duration-150">
             <Brain />
           </div>
         </motion.div>

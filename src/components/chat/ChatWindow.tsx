@@ -15,7 +15,7 @@ export default function ChatWindow() {
     if (ref) ref.current.scrollIntoView({ behavior: "instant" })
   }, [messages])
   return (
-    <div className="flex flex-col w-[445px] h-[560px] fixed bottom-0 right-0 z-[999999] border-white border backdrop-blur-lg">
+    <div className="flex flex-col rounded-lg w-[400px] h-[560px] fixed bottom-4 right-[40px] z-[999999] shadow-md shadow-white border-white border backdrop-blur-lg">
       <Header></Header>
       <Separator></Separator>
       <div className="flex-1 overflow-auto w-full">

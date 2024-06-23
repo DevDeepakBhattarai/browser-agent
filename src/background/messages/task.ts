@@ -1,5 +1,4 @@
 import {
-  actionHistorySchema,
   actionSchema,
   click,
   closeModal,
@@ -19,20 +18,24 @@ import { typeText } from "@/lib/actions/type"
 import { wait } from "@/lib/actions/wait"
 import { agentAPI } from "@/lib/agent"
 import { attachDebugger, detachDebugger } from "@/lib/chromeDebugger"
-import { formatActions, sleep } from "@/lib/utils"
+import { sleep } from "@/lib/utils"
 import type { z } from "zod"
 
 import { type PlasmoMessaging } from "@plasmohq/messaging"
+import { Storage } from "@plasmohq/storage"
 
 const MODEL = "gpt"
+const storage = new Storage()
 
 type WebsiteMessageData = {
   objective: string
+  objectiveId: string
   type: "write" | "paste"
 }
 
 const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
   const reqBody = req.body as WebsiteMessageData
+  const objectiveId = reqBody.objectiveId ?? "1234567"
   try {
     const response = await Authenticate()
     console.log(response)
@@ -46,26 +49,37 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
     let window: chrome.windows.Window
     let tabId: number
     let requestNumber = 0
-    let nextAction: z.infer<typeof actionSchema>
-    let actionSummary: string | undefined
+    let nextAction: z.inferAction[]
     let isObjectiveComplete: boolean = false
-    let fullActionsHistory: z.infer<typeof actionHistorySchema> = [] // Initialize an array to keep track of all actions
+
+    // Function to store actions
+    async function storeActions(actions: z.inferAction[]) {
+      const storedActions =
+        (await storage.get<z.inferAction[]>(`actions_${objectiveId}`)) || []
+      const updatedActions = [...storedActions, ...actions]
+      await storage.set(`actions_${objectiveId}`, updatedActions)
+    }
+
+    // Function to get stored actions
+    async function getStoredActions(): Promise<z.inferAction[]> {
+      return (
+        (await storage.get<z.inferAction[]>(`actions_${objectiveId}`)) || []
+      )
+    }
 
     const initialAction = await agentAPI.initialAction(reqBody.objective, MODEL)
     res.send({ success: true })
 
+    // Store the initial action
+    await storeActions([initialAction])
     switch (initialAction.operation) {
       case "search": {
         window = await search(initialAction.search_term)
         tabId = window.tabs[0].id
         await ping(tabId)
-        await updateMessage(
-          tabId,
-          `I searched ${initialAction.search_term} on google`
-        )
-        await openModal(tabId)
         await wait(tabId)
-        fullActionsHistory.push(initialAction)
+        await updateMessage(tabId, [initialAction])
+        await openModal(tabId)
         break
       }
       case "navigate_to": {
@@ -76,10 +90,9 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
         })
         tabId = window.tabs[0].id
         await ping(tabId)
-        await updateMessage(tabId, `I navigated to ${initialAction.url}`)
-        await openModal(tabId)
         await wait(tabId)
-        fullActionsHistory.push(initialAction)
+        await updateMessage(tabId, [initialAction])
+        await openModal(tabId)
         break
       }
     }
@@ -95,6 +108,7 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
     }
 
     while (!isObjectiveComplete && requestNumber < 15) {
+      console.log(await getStoredActions())
       await closeModal(tabId)
       await sleep(100)
       const screenshot = await takeScreenshot(window.id)
@@ -102,38 +116,37 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
       console.log(screenshot, html)
       await openModal(tabId)
       requestNumber++
-      const completed_actions = formatActions(fullActionsHistory)
-      console.log(actionSummary)
-      const response = await agentAPI.action(
+
+      nextAction = await agentAPI.action(
         [screenshot],
         html,
         reqBody.objective,
         MODEL,
-        completed_actions,
-        actionSummary
+        objectiveId
       )
-      nextAction = response.action
-      actionSummary = response.summary
+
       console.log("Next Action", nextAction)
-      if (actionSummary) {
-        fullActionsHistory.shift()
-      }
+
+      // Store the new actions
+      await storeActions(nextAction)
+
+      // Update the content script with all actions
+      const allActions = await getStoredActions()
 
       for (const action of nextAction) {
         console.log(action.thought)
-        await updateMessage(tabId, action.thought)
         switch (action.operation) {
           case "navigate_to": {
             await navigate(tabId, action.url)
             await ping(tabId)
             await wait(tabId)
-            fullActionsHistory.push(action)
+            await updateMessage(tabId, allActions)
 
             break
           }
           case "type": {
             await typeText(tabId, action.text)
-            fullActionsHistory.push(action)
+            await updateMessage(tabId, allActions)
 
             break
           }
@@ -146,34 +159,26 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
             const page_data = response.is_data_available
               ? response.page_data
               : "NO_INFORMATION"
+            await updateMessage(tabId, allActions)
 
-            fullActionsHistory.push({ ...action, result: page_data })
-            await updateMessage(
-              tabId,
-              page_data !== "NO_INFORMATION"
-                ? `I gathered the following information from the page ${page_data}`
-                : "I could not find any information on the page"
-            )
             break
           }
           case "click": {
             await click(tabId, `[data-id="${action.data_id}"]`)
-            fullActionsHistory.push(action)
+            await ping(tabId)
+            await updateMessage(tabId, allActions)
             await wait(tabId)
+
             break
           }
           case "content_writing": {
             const response = await agentAPI.content(action.instruction, MODEL)
-            fullActionsHistory.push({ ...action, result: response.content })
-            await updateMessage(
-              tabId,
-              `I generated the following content based on the user's request ${response.content}`
-            )
+            await updateMessage(tabId, allActions)
             break
           }
           case "scroll": {
             await scroll(tabId, action.direction)
-            fullActionsHistory.push({ ...action, result: action.content })
+            await updateMessage(tabId, allActions)
             break
           }
           case "search": {
@@ -182,13 +187,12 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
               `https://www.google.com/search?q=${action.search_term})`
             )
             await ping(tabId)
+            await updateMessage(tabId, allActions)
             await wait(tabId)
-            fullActionsHistory.push(action)
             break
           }
           case "done": {
             console.log("The task has been completed")
-            updateMessage(tabId, action.summary)
             isObjectiveComplete = true
             break
           }

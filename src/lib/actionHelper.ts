@@ -100,13 +100,13 @@ export async function closeModal(tabId: number) {
     }
   })
 }
-export async function updateMessage(tabId: number, message: string) {
+export async function updateMessage(tabId: number, actions: Action[]) {
   return sendToContentScript({
     tabId: tabId,
     name: "index",
     body: {
       type: "message",
-      message: message
+      actions: actions
     }
   })
 }
@@ -160,35 +160,32 @@ const gatherInfoSchema = z.object({
   instruction: z.string()
 })
 
-const actionSchema = z.array(
-  z.union([
-    navigateToSchema,
-    searchSchema,
-    contentWritingSchema,
-    typeSchema,
-    clickSchema,
-    scrollSchema,
-    doneSchema,
-    gatherInfoSchema
-  ])
-)
+const actionSchema = z.union([
+  navigateToSchema,
+  searchSchema,
+  contentWritingSchema,
+  typeSchema,
+  clickSchema,
+  scrollSchema,
+  doneSchema,
+  gatherInfoSchema
+])
 
 const resultSchema = z.object({
   result: z.string().optional()
 })
 
-export const actionHistorySchema = z.array(
-  z.union([
-    navigateToSchema.merge(resultSchema),
-    searchSchema.merge(resultSchema),
-    contentWritingSchema.merge(resultSchema),
-    typeSchema.merge(resultSchema),
-    clickSchema.merge(resultSchema),
-    scrollSchema.merge(resultSchema),
-    doneSchema.merge(resultSchema),
-    gatherInfoSchema.merge(resultSchema)
-  ])
-)
+export const actionHistorySchema = z.union([
+  navigateToSchema.merge(resultSchema),
+  searchSchema.merge(resultSchema),
+  contentWritingSchema.merge(resultSchema),
+  typeSchema.merge(resultSchema),
+  clickSchema.merge(resultSchema),
+  scrollSchema.merge(resultSchema),
+  doneSchema.merge(resultSchema),
+  gatherInfoSchema.merge(resultSchema)
+])
 
+export type Action = z.infer<typeof actionSchema>
 export const initialActionSchema = z.union([searchSchema, navigateToSchema])
 export { actionSchema }

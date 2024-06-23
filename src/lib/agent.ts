@@ -1,6 +1,7 @@
 import type { z } from "zod"
 
 import type {
+  Action,
   actionHistorySchema,
   actionSchema,
   initialActionSchema
@@ -34,8 +35,7 @@ async function action(
   html: string,
   objective: string,
   model: AvailableModels,
-  actions_completed: string,
-  summary: string | undefined
+  objectiveId: string
 ) {
   const formData = new FormData()
   // Add all the images to the form Data
@@ -46,20 +46,13 @@ async function action(
   formData.append("html", html)
   formData.append("model", model)
   formData.append("objective", objective)
-  formData.append("actions_completed", actions_completed)
-  // Check if the previous summary of the action exists and if it does add it , else not
-  if (summary) {
-    formData.append("summary", summary)
-  }
+  formData.append("objectiveId", objectiveId)
 
-  const response: {
-    action: z.infer<typeof actionSchema>
-    summary: string | undefined
-  } = await fetch(BASE_URL + "/api/agent/action", {
+  const response = await fetch(BASE_URL + "/api/agent/action", {
     method: "POST",
     body: formData
   }).then((res) => res.json())
-  return { action: response.action, summary: response.summary }
+  return response as Action[]
 }
 
 type ContentResponse = { content: string }

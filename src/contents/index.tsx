@@ -1,7 +1,9 @@
+import type { Action, actionSchema } from "@/lib/actionHelper"
 import { sleep } from "@/lib/utils"
 import { useChatMessages } from "@/states/message-state"
 import cssText from "data-text:@/style.css"
 import type { PlasmoCSConfig } from "plasmo"
+import type { z } from "zod"
 
 import { useMessage } from "@plasmohq/messaging/hook"
 
@@ -20,7 +22,7 @@ export const getStyle = () => {
 }
 
 type MessageType = {
-  message: string
+  actions: Action[]
   type: "message"
 }
 
@@ -38,10 +40,10 @@ const PlasmoOverlay = () => {
     const reqBody = req.body as RequestData
     switch (reqBody.type) {
       case "message":
-        setMessages((prev) => [
-          ...prev,
-          { content: reqBody.message, sender: "AI" }
-        ])
+        const messages = reqBody.actions.map((action) => {
+          return { content: action.thought, sender: "AI" }
+        })
+        setMessages(messages)
         res.send({ success: true })
         break
       case "popup":
