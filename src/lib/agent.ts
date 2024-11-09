@@ -9,12 +9,16 @@ import type {
 import { addBase64ImageToFormData } from "./utils"
 
 const BASE_URL = process.env.PLASMO_PUBLIC_WEBSITE_URL
-type AvailableModels = "gpt" | "claude" | "gemini"
+type AvailableModels =
+  | "gpt-4o-mini"
+  | "claude-3-5-sonnet-latest"
+  | "gemini-1.5-pro"
+  | "gpt-4o"
 
 async function initialAction(
   objective: string,
   objectiveId: string,
-  model: AvailableModels = "gpt"
+  model: AvailableModels = "gpt-4o-mini"
 ) {
   const response: z.infer<typeof initialActionSchema> = await fetch(
     BASE_URL + "/api/agent/plan",
@@ -60,7 +64,7 @@ async function action(
 type ContentResponse = { content: string }
 async function content(
   instruction: string,
-  model: AvailableModels = "gpt",
+  model: AvailableModels = "gpt-4o-mini",
   objectiveId: string
 ): Promise<ContentResponse> {
   const response: ContentResponse = await fetch(
@@ -85,7 +89,7 @@ type GatherInformationResponse = {
 async function gatherInformationFromPage(
   instruction: string,
   page_content: string,
-  model: AvailableModels = "gpt",
+  model: AvailableModels = "gpt-4o-mini",
   objectiveId: string
 ) {
   const response: GatherInformationResponse = await fetch(
