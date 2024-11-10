@@ -22,7 +22,7 @@ import { sleep } from "@/lib/utils"
 import { type PlasmoMessaging } from "@plasmohq/messaging"
 import { Storage } from "@plasmohq/storage"
 
-const MODEL = "claude-3-5-sonnet-latest"
+const MODEL = "gpt-4o-mini"
 const storage = new Storage()
 
 type WebsiteMessageData = {
