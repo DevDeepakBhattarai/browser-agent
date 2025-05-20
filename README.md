@@ -1,33 +1,130 @@
-This is a [Plasmo extension](https://docs.plasmo.com/) project bootstrapped with [`plasmo init`](https://www.npmjs.com/package/plasmo).
+# AI Browser Agent
 
-## Getting Started
+A powerful browser extension built with Plasmo and Next.js that acts as an intelligent agent to perform tasks on behalf of users.
 
-First, run the development server:
+## 🚀 Features
+
+- Browser automation and task execution
+- Intelligent web navigation and interaction
+- Secure cookie and storage management
+- Real-time web request monitoring
+- Cross-origin communication support
+- Modern UI with Tailwind CSS and Radix UI components
+
+## 🛠️ Tech Stack
+
+### Frontend (Browser Extension)
+
+- **Framework**: Plasmo (v0.87.2)
+- **UI Library**: React 18
+- **Styling**:
+  - Tailwind CSS
+  - Radix UI Components
+  - Framer Motion for animations
+- **State Management**: Zustand
+- **Type Safety**: TypeScript
+- **Code Quality**: Prettier, ESLint
+
+### Backend (Next.js API)
+
+- Next.js API routes
+- Upstash Redis for data storage
+- TypeScript for type safety
+
+## 📦 Installation
+
+1. Clone the repository:
 
 ```bash
+git clone [repository-url]
+cd allweone-extension
+```
+
+2. Install dependencies:
+
+```bash
+pnpm install
+```
+
+3. Start the development server:
+
+```bash
+# Start the extension development server
 pnpm dev
-# or
-npm run dev
+
+# Start the Next.js API server (in the next-js-api-and-frontend directory)
+cd next-js-api-and-frontend
+pnpm dev
 ```
 
-Open your browser and load the appropriate development build. For example, if you are developing for the chrome browser, using manifest v3, use: `build/chrome-mv3-dev`.
+## 🔧 Development
 
-You can start editing the popup by modifying `popup.tsx`. It should auto-update as you make changes. To add an options page, simply add a `options.tsx` file to the root of the project, with a react component default exported. Likewise to add a content page, add a `content.ts` file to the root of the project, importing some module and do some logic, then reload the extension on your browser.
+### Available Scripts
 
-For further guidance, [visit our Documentation](https://docs.plasmo.com/)
+- `pnpm dev` - Start the development server
+- `pnpm build` - Build the extension for production
+- `pnpm package` - Package the extension for distribution
 
-## Making production build
+### Project Structure
 
-Run the following:
-
-```bash
-pnpm build
-# or
-npm run build
+```
+├── src/                    # Extension source code
+├── next-js-api-and-frontend/  # Next.js API and frontend
+│   ├── api/               # API routes
+│   └── hooks/             # Custom React hooks
+├── assets/                # Static assets
+└── build/                 # Build output
 ```
 
-This should create a production bundle for your extension, ready to be zipped and published to the stores.
+## 🔐 Permissions
 
-## Submit to the webstores
+The extension requires the following permissions:
 
-The easiest way to deploy your Plasmo extension is to use the built-in [bpp](https://bpp.browser.market) GitHub action. Prior to using this action however, make sure to build your extension and upload the first version to the store to establish the basic credentials. Then, simply follow [this setup instruction](https://docs.plasmo.com/framework/workflows/submit) and you should be on your way for automated submission!
+- `cookies` - For cookie management
+- `scripting` - For executing scripts
+- `storage` - For data persistence
+- `tabs` - For tab management
+- `webNavigation` - For navigation events
+- `webRequest` - For request monitoring
+- `activeTab` - For current tab access
+- `debugger` - For debugging capabilities
+
+## 🔌 External Connections
+
+The extension can communicate with:
+
+- `http://localhost:3000/*`
+- `https://allweone.vercel.app/*`
+
+## 🎨 UI Components
+
+The project uses a modern component library built with:
+
+- Radix UI for accessible components
+- Tailwind CSS for styling
+- Framer Motion for smooth animations
+- Custom components for specific functionality
+
+## 📝 License
+
+MIT License
+
+Copyright (c) 2025
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+1. The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+2. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE.
